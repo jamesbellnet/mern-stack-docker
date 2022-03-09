@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  web:
+    container_name: react-web
+    image: node:17
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/www
+    working_dir: /www
+    command: bash -c "npm install && npm run start"
+    environment:
+      NODE_ENV: development
+
+  api:
+    container_name: nodejs-api
+    build: ./
+    volumes:
+      - ./app:/src
+    ports:
+      - "8000:3000"
+    command: bash -c "npm install && npm run start:dev"
+    depends_on:
+      - mongodb
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      DB_URL: mongodb://root:password@mongodb:27017/
+
+  mongodb:
+    container_name: mongodb-database
+    image: mongo
+    restart: unless-stopped
+    volumes:
+      - ./database:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+  mongo-express:
+    container_name: mongodb-express
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://root:password@mongodb:27017/
